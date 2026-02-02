@@ -335,7 +335,9 @@ app.all('*', async (c) => {
       console.log('[WS] Client closed:', event.code, event.reason);
       containerWs.close(event.code, event.reason);
     });
-    
+    // Fix Cloudflare caching issue: remove last-modified header to prevent empty response caching
+  // This prevents 304/not-modified responses when the backend sends dynamic content
+  newHeaders.delete('last-modified');
     containerWs.addEventListener('close', (event) => {
       console.log('[WS] Container closed:', event.code, event.reason);
       // Transform the close reason (truncate to 123 bytes max for WebSocket spec)
