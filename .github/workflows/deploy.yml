@@ -1,0 +1,56 @@
+name: Deploy OpenClaw
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
+          MOLTBOT_GATEWAY_TOKEN: ${{ secrets.MOLTBOT_GATEWAY_TOKEN }}
+          CF_ACCESS_TEAM_DOMAIN: ${{ secrets.CF_ACCESS_TEAM_DOMAIN }}
+          CF_ACCESS_AUD: ${{ secrets.CF_ACCESS_AUD }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+  configure-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure GitHub Secrets
+        run: |
+          echo "请在GitHub仓库设置中手动配置以下Secrets:"
+          echo ""
+          echo "Secrets 列表:"
+          echo "ANTHROPIC_API_KEY: sk-api-nGBPbRgPx0akd0viRiaXSVmogD9OUpvf3MlxEgr3OE3wKlPUbvOICUZTXmhUyIURJWWnOnUIcCBNmmCp0DUYtC7sCN7Oz856QuOH-tvQvSINOICqWiLOEvA"
+          echo "ANTHROPIC_BASE_URL: https://api.minimax.io/anthropic/v1"
+          echo "MOLTBOT_GATEWAY_TOKEN: 2bff9bb4b16b913f536bfa7a47eb07525052063912dd8da9f243a631f578452f"
+          echo "CF_ACCESS_TEAM_DOMAIN: ymcharvey"
+          echo "CF_ACCESS_AUD: a5fb53e3bd69b9f5a0a99b2f0cc801036d403bcc140eea707e0c80a2ed26e937"
+          echo "R2_ACCESS_KEY_ID: e5764ea0b2ca89e7b58ad9f42c7a1625"
+          echo "R2_SECRET_ACCESS_KEY: 7819132eeb4bb53d6a730cb9eb772149a819f66df2622ad583730a86f4243e7c"
+          echo "CF_ACCOUNT_ID: ymcharvey"
+          echo ""
+          echo "访问: https://github.com/imajuana/moltworker/settings/secrets/actions"
