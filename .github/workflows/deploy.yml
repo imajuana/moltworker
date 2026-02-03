@@ -8,34 +8,32 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # 配置Docker使用镜像加速器
-    container:
-      image: ubuntu:22.04
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      
+
       - name: Install Docker
-        run: |
-          apt-get update && apt-get install -y docker.io
-          service docker start
-      
+        uses: docker-practice/actions-setup-docker@master
+        with:
+          docker-version: latest
+
       - name: Configure Docker Hub mirror
         run: |
-          mkdir -p /etc/docker
-          echo '{"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}' > /etc/docker/daemon.json
-          service docker restart
-      
+          sudo mkdir -p /etc/docker
+          |
+          echo '{"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}' | sudo tee /etc/docker/daemon.json
+          sudo service docker restart
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build
         run: npm run build
-      
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
