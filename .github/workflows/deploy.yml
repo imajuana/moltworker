@@ -24,7 +24,6 @@ jobs:
       - name: Configure Docker Hub mirror
         run: |
           sudo mkdir -p /etc/docker
-          |
           echo '{"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}' | sudo tee /etc/docker/daemon.json
           sudo service docker restart
 
