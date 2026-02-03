@@ -1,4 +1,4 @@
-name: Deploy OpenClaw
+name: Deploy OpenClaw with Container
 
 on:
   workflow_dispatch:
@@ -17,15 +17,7 @@ jobs:
           node-version: 22
 
       - name: Install Docker
-        uses: docker-practice/actions-setup-docker@master
-        with:
-          docker-version: latest
-
-      - name: Configure Docker Hub mirror
-        run: |
-          sudo mkdir -p /etc/docker
-          echo '{"registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]}' | sudo tee /etc/docker/daemon.json
-          sudo service docker restart
+        uses: docker/setup-buildx-action@v3
 
       - name: Install dependencies
         run: npm ci
@@ -33,7 +25,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy to Cloudflare Workers
+      - name: Build and Deploy Container
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -46,22 +38,3 @@ jobs:
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-
-  configure-secrets:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Configure GitHub Secrets
-        run: |
-          echo "请在GitHub仓库设置中手动配置以下Secrets:"
-          echo ""
-          echo "Secrets 列表:"
-          echo "ANTHROPIC_API_KEY: sk-api-nGBPbRgPx0akd0viRiaXSVmogD9OUpvf3MlxEgr3OE3wKlPUbvOICUZTXmhUyIURJWWnOnUIcCBNmmCp0DUYtC7sCN7Oz856QuOH-tvQvSINOICqWiLOEvA"
-          echo "ANTHROPIC_BASE_URL: https://api.minimax.io/anthropic/v1"
-          echo "MOLTBOT_GATEWAY_TOKEN: 2bff9bb4b16b913f536bfa7a47eb07525052063912dd8da9f243a631f578452f"
-          echo "CF_ACCESS_TEAM_DOMAIN: ymcharvey"
-          echo "CF_ACCESS_AUD: a5fb53e3bd69b9f5a0a99b2f0cc801036d403bcc140eea707e0c80a2ed26e937"
-          echo "R2_ACCESS_KEY_ID: e5764ea0b2ca89e7b58ad9f42c7a1625"
-          echo "R2_SECRET_ACCESS_KEY: 7819132eeb4bb53d6a730cb9eb772149a819f66df2622ad583730a86f4243e7c"
-          echo "CF_ACCOUNT_ID: ymcharvey"
-          echo ""
-          echo "访问: https://github.com/imajuana/moltworker/settings/secrets/actions"
