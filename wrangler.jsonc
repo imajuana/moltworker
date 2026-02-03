@@ -29,6 +29,9 @@
   "build": {
     "command": "npm run build"
   },
+  "routes": [
+    "https://moltbot-sandbox.ymcharvey.workers.dev/*"
+  ],
   "containers": [
     {
       "class_name": "Sandbox",
