@@ -208,14 +208,34 @@ if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_APP_TOKEN) {
     config.channels.slack.enabled = true;
 }
 
-// Base URL override (e.g., for Cloudflare AI Gateway)
+// Base URL override (e.g., for Cloudflare AI Gateway or MiniMax)
 // Usage: Set AI_GATEWAY_BASE_URL or ANTHROPIC_BASE_URL to your endpoint like:
 //   https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/anthropic
 //   https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/openai
+//   https://api.minimax.ai/v1 (MiniMax OpenAI compatible)
 const baseUrl = (process.env.AI_GATEWAY_BASE_URL || process.env.ANTHROPIC_BASE_URL || '').replace(/\/+$/, '');
 const isOpenAI = baseUrl.endsWith('/openai');
+const isMiniMax = baseUrl.includes('api.minimax.ai');
 
-if (isOpenAI) {
+if (isMiniMax) {
+    // Configure MiniMax as OpenAI compatible provider
+    console.log('Configuring MiniMax provider with base URL:', baseUrl);
+    config.models = config.models || {};
+    config.models.providers = config.models.providers || {};
+    config.models.providers.openai = {
+        baseUrl: baseUrl,
+        api: 'openai-responses',
+        models: [
+            { id: 'abab6.5-chat', name: 'MiniMax 6.5 Chat', contextWindow: 128000 },
+            { id: 'abab6.5s-chat', name: 'MiniMax 6.5S Chat', contextWindow: 128000 },
+        ]
+    };
+    // Add models to the allowlist
+    config.agents.defaults.models = config.agents.defaults.models || {};
+    config.agents.defaults.models['openai/abab6.5-chat'] = { alias: 'MiniMax 6.5' };
+    config.agents.defaults.models['openai/abab6.5s-chat'] = { alias: 'MiniMax 6.5S' };
+    config.agents.defaults.model.primary = 'openai/abab6.5-chat';
+} else if (isOpenAI) {
     // Create custom openai provider config with baseUrl override
     // Omit apiKey so moltbot falls back to OPENAI_API_KEY env var
     console.log('Configuring OpenAI provider with base URL:', baseUrl);

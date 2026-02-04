@@ -59,12 +59,14 @@ function validateRequiredEnv(env: MoltbotEnv): string[] {
     missing.push('MOLTBOT_GATEWAY_TOKEN');
   }
 
-  if (!env.CF_ACCESS_TEAM_DOMAIN) {
-    missing.push('CF_ACCESS_TEAM_DOMAIN');
+  // Check for Cloudflare Access (optional - only required if you want to use Access protection)
+  // If both are set, Access protection is enabled. If either is missing, Access is skipped.
+  if (env.CF_ACCESS_TEAM_DOMAIN && !env.CF_ACCESS_AUD) {
+    missing.push('CF_ACCESS_AUD (required when CF_ACCESS_TEAM_DOMAIN is set)');
   }
-
-  if (!env.CF_ACCESS_AUD) {
-    missing.push('CF_ACCESS_AUD');
+  
+  if (env.CF_ACCESS_AUD && !env.CF_ACCESS_TEAM_DOMAIN) {
+    missing.push('CF_ACCESS_TEAM_DOMAIN (required when CF_ACCESS_AUD is set)');
   }
 
   // Check for AI Gateway or direct Anthropic configuration

@@ -1,23 +1,8 @@
-FROM ubuntu:22.04
-
-# Install Node.js 22, rsync, and other dependencies
-ENV NODE_VERSION=22.13.1
-
-RUN apt-get update && apt-get install -y \
-    curl \
-    xz-utils \
-    ca-certificates \
-    rsync \
-    && curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz -o /tmp/node.tar.xz \
-    && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
-    && rm /tmp/node.tar.xz \
-    && node --version \
-    && npm --version \
-    && apt-get clean
+# Use Cloudflare's sandbox base image
+FROM cloudflare/sandbox:node22
 
 # Install rsync for R2 backup sync
-RUN apt-get update && apt-get install -y xz-utils ca-certificates rsync \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y rsync && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm globally
 RUN npm install -g pnpm
@@ -35,7 +20,7 @@ RUN mkdir -p /root/.clawdbot \
     && mkdir -p /root/clawd/skills
 
 # Copy startup script
-# Build cache bust: 2026-01-28-v26-browser-skill
+# Build cache bust: 2026-02-04-v1-minimax
 COPY start-moltbot.sh /usr/local/bin/start-moltbot.sh
 RUN chmod +x /usr/local/bin/start-moltbot.sh
 
